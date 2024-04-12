@@ -2,14 +2,17 @@ from discord import Embed
 from discord.ext import commands
 import requests
 import random
+from discord import app_commands
+import discord
 
 
 class Meme(commands.Cog):
     def __init__(self, client):
         self.client = client
 
-    @commands.command("meme", brief="This is a meme!")
-    async def meme(self, ctx):
+    @app_commands.command(name="meme", description="Could it BE any more obvious?")
+    async def meme(self, interaction: discord.Interaction):
+        await interaction.response.defer()
         memeSubreddits = [
             "dankmemes",
             "memes",
@@ -47,9 +50,12 @@ class Meme(commands.Cog):
                 name="", value="**[Post Link](" + postLink + ")**", inline=False
             )
 
-            await ctx.send(embed=embed)
+            await interaction.edit_original_response(
+                content='*I am still in development so there is a chance that I might fail to find a "funny" meme. You can suggest some subreddits to me if you want.*',
+                embed=embed,
+            )
         else:
-            await ctx.send("Failed to fetch meme")
+            await interaction.edit_original_response(content="Failed to fetch meme")
 
 
 def setup(client):
