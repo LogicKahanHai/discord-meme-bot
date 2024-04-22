@@ -14,13 +14,9 @@ class Meme(commands.Cog):
     async def meme(self, interaction: discord.Interaction):
         await interaction.response.defer()
         memeSubreddits = [
-            "dankmemes",
-            "memes",
-            "wholesomememes",
             "ProgrammerHumor",
             "techhumor",
             "devhumor",
-            "funny",
         ]
         randomSubreddit = random.choice(memeSubreddits)
         response = requests.get(f"https://meme-api.com/gimme/{randomSubreddit}")
@@ -51,7 +47,7 @@ class Meme(commands.Cog):
             )
 
             await interaction.edit_original_response(
-                content='*I am still in development so there is a chance that I might fail to find a "funny" meme. You can suggest some subreddits to me if you want.*',
+                content='*I am still in development so there is a chance that I might fail to find a "funny" meme. You can suggest some subreddits to me if you want through the __feedback__ command.*',
                 embed=embed,
             )
         else:
