@@ -16,49 +16,59 @@ class TechNews(commands.Cog):
         name="enlighten-me",
         description="Run this command to get a random report from the tech world!",
     )
-    async def enlightenMe(self, interaction: discord.Interaction):
+    async def enlightenMe(self, interaction: discord.Interaction, topic: str = ""):
         self.loading = True
-        await interaction.response.send_message("Please wait while I book the tickets for my journey...")
-        multiplier = 1
-        load_news_task = asyncio.create_task(self.load_the_news())
-        count = 0
-        success = True
-        while self.loading:
-            count += 1
-            if count > 2:
-                success = False
-                self.loading = False
-                break
-            async with interaction.channel.typing():
-                await asyncio.sleep(0.5 * multiplier)
-                await interaction.edit_original_response(content="Boarding the flight...")
-                await asyncio.sleep(1 * multiplier)
-                await interaction.edit_original_response(content="Taking off...")
-                await asyncio.sleep(1 * multiplier)
-                await interaction.edit_original_response(content="Landed... Gathering the news...")
-                await asyncio.sleep(1 * multiplier)
-                await interaction.edit_original_response(content="On my way back...")
-                await asyncio.sleep(1 * multiplier)
-                await interaction.edit_original_response(content="Almost there...")
-                await asyncio.sleep(1 * multiplier)
-                await interaction.edit_original_response(content="I'm back!")
-                await asyncio.sleep(1 * multiplier)
-                if self.loading:
-                    multiplier /= 2
-                    if multiplier < 0.5:
-                        multiplier = 0.5
-                    await interaction.edit_original_response(content="Oh no! I forgot the most important part! Let me quickly go and come back...")
+        await interaction.response.defer()
+        try:
+            email_class = Email()
+            if topic != "" and not email_class.check_topic(topic=topic):
+                topics = email_class.get_topics()
+                await interaction.edit_original_response(content=f"Pardon me! I could not find any news on __{topic}__. Here are some topics I can help you with:\n\n**__{'__**, **__'.join(topics)}__**\n\nPlease try again with one of these topics!")
+                return
+            await interaction.edit_original_response(content="Please wait while I book the tickets for my journey...")
+            multiplier = 1
+            load_news_task = asyncio.create_task(self.load_the_news(topic=topic))
+            count = 0
+            success = True
+            while self.loading:
+                count += 1
+                if count > 1:
+                    success = False
+                    self.loading = False
+                    break
+                async with interaction.channel.typing():
+                    await asyncio.sleep(0.5 * multiplier)
+                    await interaction.edit_original_response(content="Boarding the flight...")
                     await asyncio.sleep(1 * multiplier)
-        if success:
-            embed = await load_news_task
-            await interaction.edit_original_response(content="Finally! Here you go! You can click on the news links to go read the articles.", embed=embed)
-        else:
+                    await interaction.edit_original_response(content="Taking off...")
+                    await asyncio.sleep(1 * multiplier)
+                    await interaction.edit_original_response(content="Landed... Gathering the news...")
+                    await asyncio.sleep(1 * multiplier)
+                    await interaction.edit_original_response(content="On my way back...")
+                    await asyncio.sleep(1 * multiplier)
+                    await interaction.edit_original_response(content="Almost there...")
+                    await asyncio.sleep(1 * multiplier)
+                    await interaction.edit_original_response(content="I'm back!")
+                    await asyncio.sleep(1 * multiplier)
+                    if self.loading:
+                        multiplier /= 2
+                        if multiplier < 0.5:
+                            multiplier = 0.5
+                        await interaction.edit_original_response(content="Oh no! I forgot the most important part! Let me quickly go and come back...")
+                        await asyncio.sleep(1 * multiplier)
+            if success:
+                embed = await load_news_task
+                await interaction.edit_original_response(content="Finally! Here you go! You can click on the news links to go read the articles.", embed=embed)
+            else:
+                await interaction.edit_original_response(content="I'm sorry! I could not find any news for you. Please try again later!")
+        except Exception as e:
+            print(f"Error: {e}")
             await interaction.edit_original_response(content="I'm sorry! I could not find any news for you. Please try again later!")
 
     
-    async def load_the_news(self):
+    async def load_the_news(self, topic: str = ""):
         email = Email()
-        news_with_topic = await email.get_news("tech", 1)
+        news_with_topic = await email.get_news(topic=topic)
         try:
             news = news_with_topic["news"]
             topic: str = news_with_topic["topic"]

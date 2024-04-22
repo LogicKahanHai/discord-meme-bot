@@ -1,6 +1,7 @@
 import imaplib
 import email
 from email.header import decode_header
+from email.message import Message
 import os
 from dotenv import load_dotenv
 import random
@@ -73,7 +74,36 @@ class Email:
                 "Miscellaneous",
                 "Quick Links",
             ],
+            "TLDR InfoSec": [
+                "Attacks & Vulnerabilities",
+                "Strategies & Tactics",
+                "Launches & Tools",
+                "Miscellaneous",
+                "Quick Links",
+            ],
+            "TLDR Founders": [
+                "Headlines & Trends",
+                "Strategies & Tactics",
+                "Tools & Resources",
+                "Miscellaneous",
+                "Quick Links",
+            ],
         }
+
+    def check_topic(self, topic: str):
+        for key in self.sections.keys():
+            if topic.lower() in key.lower():
+                return True
+        return False
+
+    def get_topics(self):
+        topics = []
+        for key in self.sections.keys():
+            append_key = key.replace("TLDR ", "")
+            if append_key != "":
+                topics.append(append_key)
+
+        return topics
 
     def extract_section_articles(self, email_body, topic: str):
         sections = self.sections[topic]
@@ -127,8 +157,12 @@ class Email:
 
         for article in articles:
             # Split the article into title and brief by "\r\n\r\n"
-            title = article.split("<WITHIN_ARTICLE>")[0].strip()
-            brief = article.split("<WITHIN_ARTICLE>")[1].strip()
+            print(article)
+            try:
+                title = article.split("<WITHIN_ARTICLE>")[0].strip()
+                brief = article.split("<WITHIN_ARTICLE>")[1].strip()
+            except:
+                continue
 
             # Add the article to the list
             article_list.append({"title": title, "brief": brief})
@@ -183,19 +217,37 @@ class Email:
 
         return links_dict
 
-    async def get_news(self, topic: str = "", number_of_emails: int = 1):
+    def extract_mail_body(self, message: Message, topic: str, email_list: dict):
+        for part in message.walk():
+            content_type = part.get_content_type()
+            content_disposition = str(part.get("Content-Disposition"))
+            try:
+                body = part.get_payload(decode=True).decode()
+            except:
+                pass
+
+            if content_type == "text/plain" and "attachment" not in content_disposition:
+                news = self.extract_usable_content(body, topic)
+                links = self.get_links(body)
+                email_list["topic"] = topic
+                email_list["news"] = news
+                email_list["links"] = links
+                return email_list
+        return email_list
+
+    async def get_news(self, topic: str = ""):
         result, data = self.mail.search(None, "ALL")
         email_list = {
             "topic": "",
             "news": {},
         }
         counter = 0
-        randint = random.randint(0, 3)
+        randint = random.randint(0, len(self.sections.keys()) - 1)
         for num in data[0].split()[::-1]:
             if email_list["news"] != {}:
                 break
 
-            if counter < randint:
+            if counter < randint and topic == "":
                 counter += 1
                 continue
 
@@ -206,26 +258,12 @@ class Email:
             subject = email_message["Subject"]
             From = email_message["From"]
             email_topic = From.split("<")[0].strip()
-            # if "TLDR AI" in From or "TLDR Design" in From or "TLDR Crypto" in From:
             if "tldr" in From.lower():
+                if topic != "" and topic.lower() not in email_topic.lower():
+                    print("Skipping email with topic:", email_topic)
+                    continue
                 if email_message.is_multipart():
-                    for part in email_message.walk():
-                        content_type = part.get_content_type()
-                        content_disposition = str(part.get("Content-Disposition"))
-                        try:
-                            body = part.get_payload(decode=True).decode()
-                        except:
-                            pass
-                        if (
-                            content_type == "text/plain"
-                            and "attachment" not in content_disposition
-                        ):
-                            news = self.extract_usable_content(body, email_topic)
-                            links = self.get_links(body)
-                            email_list["topic"] = email_topic
-                            email_list["news"] = news
-                            email_list["links"] = links
-                            return email_list
-            else:
-                continue
+                    email_list = self.extract_mail_body(
+                        email_message, email_topic, email_list
+                    )
         return email_list
