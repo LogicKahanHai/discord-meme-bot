@@ -14,7 +14,7 @@ class TechNews(commands.Cog):
 
     @app_commands.command(
         name="enlighten-me",
-        description="Run this command to get a random report from the tech world!",
+        description="Get a random report from the tech world, or specify a topic to get news on that topic!",
     )
     async def enlightenMe(self, interaction: discord.Interaction, topic: str = ""):
         self.loading = True

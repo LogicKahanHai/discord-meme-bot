@@ -2,11 +2,12 @@ import discord
 from discord import app_commands
 from discord.ext import commands
 import discord.http
+from discord.ext.commands import Bot
 
 
-class Feedback(commands.Cog):
+class Support(commands.Cog):
     def __init__(self, bot):
-        self.bot = bot
+        self.bot: Bot = bot
 
     @app_commands.command(name="feedback", description="Send feedback to the bot owner")
     async def feedback(self, interaction: discord.Interaction, *, message: str):
@@ -42,3 +43,24 @@ class Feedback(commands.Cog):
                 content="I'm sorry, the feedback channel isn't on yet.. please check back later. Maybe my owner is mad at me and so I am unable to talk to them."
             )
         await interaction.edit_original_response(content="Feedback sent!")
+
+    @app_commands.command(
+        name="help",
+        description="Get the list of all commands that I can perform!",
+    )
+    async def help(self, interaction: discord.Interaction):
+        embedVar = discord.Embed(
+            title="AWS ka Chotu aa gaya!",
+            description="I send memes and important tech news on the topics that the masters of this server have selected. You can find the list of all my commands below: -",
+            color=0x00FF00,
+        )
+        allCogs = self.bot.cogs
+        for cog in allCogs:
+            commands = self.bot.get_cog(cog).get_app_commands()
+            cog_commands = ""
+            for command in commands:
+                cog_commands += f"**{command.name}** - {command.description}\n"
+            embedVar.add_field(
+                name=f"**__{cog}__**\n\n", value=cog_commands, inline=False
+            )
+        await interaction.response.send_message(embed=embedVar)

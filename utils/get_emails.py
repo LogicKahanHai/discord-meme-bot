@@ -157,7 +157,6 @@ class Email:
 
         for article in articles:
             # Split the article into title and brief by "\r\n\r\n"
-            print(article)
             try:
                 title = article.split("<WITHIN_ARTICLE>")[0].strip()
                 brief = article.split("<WITHIN_ARTICLE>")[1].strip()
@@ -260,7 +259,6 @@ class Email:
             email_topic = From.split("<")[0].strip()
             if "tldr" in From.lower():
                 if topic != "" and topic.lower() not in email_topic.lower():
-                    print("Skipping email with topic:", email_topic)
                     continue
                 if email_message.is_multipart():
                     email_list = self.extract_mail_body(
