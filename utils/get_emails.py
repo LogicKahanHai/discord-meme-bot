@@ -92,7 +92,7 @@ class Email:
 
     def check_topic(self, topic: str):
         for key in self.sections.keys():
-            if topic.lower() in key.lower():
+            if topic.lower() == key.lower():
                 return True
         return False
 

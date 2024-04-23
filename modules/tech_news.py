@@ -23,7 +23,9 @@ class TechNews(commands.Cog):
             email_class = Email()
             if topic != "" and not email_class.check_topic(topic=topic):
                 topics = email_class.get_topics()
-                await interaction.edit_original_response(content=f"Pardon me! I could not find any news on __{topic}__. Here are some topics I can help you with:\n\n**__{'__**, **__'.join(topics)}__**\n\nPlease try again with one of these topics!")
+                await interaction.edit_original_response(
+                    content=f"Pardon me! I could not find any news on __{topic}__. Here are some topics I can help you with:\n\n**__{'__**, **__'.join(topics)}__**\n\nPlease try again with one of these topics! **I am not very intelligent right now, so I can only understand the topic if you write it exactly as shown above (Can be in any case, lowercase, uppercase but the spelling should not be wrong)!**"
+                )
                 return
             await interaction.edit_original_response(content="Please wait while I book the tickets for my journey...")
             multiplier = 1
