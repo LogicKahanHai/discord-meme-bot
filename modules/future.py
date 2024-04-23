@@ -12,12 +12,38 @@ class FuturePlans(commands.Cog):
     def check_owner(self, interaction: discord.Interaction):
         return str(interaction.user.id) == self.bot.owner_id
 
+    # Check if the command is being used in Private Message
+    async def is_private(self, interaction: discord.Interaction):
+        if interaction.channel.type == discord.ChannelType.private:
+            embed = discord.Embed(
+                title="Error!",
+                description="This command can only be used in a server!",
+                color=discord.Color.red(),
+            )
+            await interaction.edit_original_response(embed=embed)
+            return True
+        return False
+
+    # Check if the command is being used in a Guild
+    async def is_guild(self, interaction: discord.Interaction):
+        if interaction.channel.type != discord.ChannelType.private:
+            embed = discord.Embed(
+                title="Error!",
+                description="This command can only be used in a private message and by the OWNER only! Use the `/suggest-feature` command to suggest anything.",
+                color=discord.Color.red(),
+            )
+            await interaction.edit_original_response(embed=embed)
+            return True
+        return False
+
     @app_commands.command(
         name="future-plans",
         description="Get the future plans for the bot",
     )
     async def future_plans(self, interaction: discord.Interaction):
         await interaction.response.defer()
+        if await self.is_private(interaction):
+            return
         future_plans = self.cursor.get("future_plans")
         if future_plans:
             plans = "\n".join(future_plans)
@@ -36,6 +62,8 @@ class FuturePlans(commands.Cog):
         self, interaction: discord.Interaction, *, future_plan: str
     ):
         await interaction.response.defer()
+        if await self.is_guild(interaction):
+            return
         if not self.check_owner(interaction):
             embed = discord.Embed(
                 title="Error!",
@@ -71,6 +99,8 @@ class FuturePlans(commands.Cog):
         self, interaction: discord.Interaction, *, future_plan_id: int
     ):
         await interaction.response.defer()
+        if await self.is_guild(interaction):
+            return
         if not self.check_owner(interaction):
             embed = discord.Embed(
                 title="Error!",
@@ -125,6 +155,8 @@ class FuturePlans(commands.Cog):
     )
     async def completed_plans(self, interaction: discord.Interaction):
         await interaction.response.defer()
+        if await self.is_private(interaction):
+            return
         completed_plans = self.cursor.get("completed_plans")
         if completed_plans:
             plans = "\n".join(completed_plans)
@@ -132,22 +164,5 @@ class FuturePlans(commands.Cog):
             title="Completed Plans",
             description=plans if completed_plans else "No completed plans yet!",
             color=discord.Color.blurple(),
-        )
-        await interaction.edit_original_response(embed=embed)
-
-    @app_commands.command(
-        name="suggest-feature",
-        description="Suggest a feature for the bot",
-    )
-    async def suggest_feature(self, interaction: discord.Interaction, *, feature: str):
-        await interaction.response.defer()
-        feature = (
-            f"{interaction.user.name}#{interaction.user.discriminator} - {feature}"
-        )
-        self.cursor.add("suggested_features", feature)
-        embed = discord.Embed(
-            title="Success!",
-            description="Feature has been suggested successfully!",
-            color=discord.Color.green(),
         )
         await interaction.edit_original_response(embed=embed)

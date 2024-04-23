@@ -3,11 +3,13 @@ from discord import app_commands
 from discord.ext import commands
 import discord.http
 from discord.ext.commands import Bot
+from utils.db import DB
 
 
 class Support(commands.Cog):
     def __init__(self, bot):
         self.bot: Bot = bot
+        self.cursor = DB()
 
     @app_commands.command(name="feedback", description="Send feedback to the bot owner")
     async def feedback(self, interaction: discord.Interaction, *, message: str):
@@ -16,7 +18,6 @@ class Support(commands.Cog):
         ctx = await self.bot.get_context(interaction)
         try:
             owner = await self.bot.fetch_user(self.bot.owner_id)
-            print(owner)
         except Exception as e:
             print(e)
             owner = None
@@ -64,3 +65,26 @@ class Support(commands.Cog):
                 name=f"**__{cog}__**\n\n", value=cog_commands, inline=False
             )
         await interaction.response.send_message(embed=embedVar)
+
+    @app_commands.command(
+        name="suggest-feature",
+        description="Suggest a feature for the bot",
+    )
+    async def suggest_feature(self, interaction: discord.Interaction, *, feature: str):
+        await interaction.response.defer()
+
+        # feature = (
+        #     f"{interaction.user.name}{f"#{interaction.user.discriminator}" if interaction.user.discriminator != "0" else ""} - {feature}"
+        # )
+        suggestion = {
+            "user": f"{interaction.user.name}{f"#{interaction.user.discriminator}" if interaction.user.discriminator != "0" else ""}",
+            "suggestion": feature,
+            "votes": 1,
+        }
+        self.cursor.add("suggested_features", suggestion)
+        embed = discord.Embed(
+            title="Success!",
+            description="Feature has been suggested successfully!",
+            color=discord.Color.green(),
+        )
+        await interaction.edit_original_response(embed=embed)

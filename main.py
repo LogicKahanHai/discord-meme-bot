@@ -13,6 +13,7 @@ from modules.future import FuturePlans
 load_dotenv()
 token = os.getenv("BOT_TOKEN")
 owner_id = os.getenv("OWNER_ID")
+email = os.getenv("EMAIL_ID")
 
 intents = discord.Intents.default()
 intents.message_content = True
@@ -28,8 +29,10 @@ async def on_ready():
             type=discord.ActivityType.watching, name="memes and tech news"
         )
     )
+
     await bot.add_cog(Meme(bot))
-    await bot.add_cog(TechNews(bot))
+    if email:
+        await bot.add_cog(TechNews(bot))
     await bot.add_cog(Support(bot))
     await bot.add_cog(FuturePlans(bot))
 
