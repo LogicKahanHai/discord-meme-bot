@@ -8,14 +8,16 @@ from discord import app_commands
 from modules.meme import Meme
 from modules.tech_news import TechNews
 from modules.support import Support
+from modules.future import FuturePlans
 
 load_dotenv()
 token = os.getenv("BOT_TOKEN")
+owner_id = os.getenv("OWNER_ID")
 
 intents = discord.Intents.default()
 intents.message_content = True
 intents.presences = True
-bot = commands.Bot(command_prefix="!", intents=intents, owner_id=889091852555395122)
+bot = commands.Bot(command_prefix="!", intents=intents, owner_id=owner_id)
 bot.remove_command("help")
 
 
@@ -29,6 +31,7 @@ async def on_ready():
     await bot.add_cog(Meme(bot))
     await bot.add_cog(TechNews(bot))
     await bot.add_cog(Support(bot))
+    await bot.add_cog(FuturePlans(bot))
 
     slash_cmd = await bot.tree.sync()
 
