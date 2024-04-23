@@ -65,7 +65,6 @@ class TechNews(commands.Cog):
             print(f"Error: {e}")
             await interaction.edit_original_response(content="I'm sorry! I could not find any news for you. Please try again later!")
 
-    
     async def load_the_news(self, topic: str = ""):
         email = Email()
         news_with_topic = await email.get_news(topic=topic)
@@ -81,9 +80,8 @@ class TechNews(commands.Cog):
         except AttributeError:
             keys = []
 
-
         embed = discord.Embed(
-            title=f"Here is the latest tech news on __{topic.replace("TLDR ", "")}__!",
+            title=f"Here is the latest tech news on __{topic.replace('TLDR ', '')}__!",
             description=f"This is what I could find for you!",
             color=0x00FF00,
         )
@@ -95,7 +93,7 @@ class TechNews(commands.Cog):
                 inline=False,
             )
             return embed
-        
+
         for key in keys:
             section_news = news[key]
             if len(section_news) == 0:
@@ -108,7 +106,7 @@ class TechNews(commands.Cog):
             match = re.search(r'\[(\d{1,2})\]', section_news[index]['title'])
             if match:
                 link_key = int(match.group(1))
-            
+
             title = re.sub(r'\[\d{1,2}\]\s*', '', section_news[index]['title'])
 
             link = links.get(link_key, None)
@@ -122,7 +120,6 @@ class TechNews(commands.Cog):
 
             embed.add_field(name=section_title, value=temp, inline=False)
 
-        
         print("News loaded successfully!")
 
         self.loading = False
