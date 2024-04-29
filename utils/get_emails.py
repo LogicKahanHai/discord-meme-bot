@@ -211,6 +211,7 @@ class Email:
 
         matches = re.findall(r"\[(\d{1,2})\] (https?://[^\s]+)", links_text)
 
+        # Create a dictionary from the matches
         links_dict = {int(key): url for key, url in matches}
 
         return links_dict
